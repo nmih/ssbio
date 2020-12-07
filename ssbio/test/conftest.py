@@ -105,7 +105,7 @@ def pdb_ids_false():
 
 
 @pytest.fixture(scope='module')
-def sifts_xmls_working(test_files_structures):
+def sifts_xml(test_files_structures):
     """ SIFTS XML file for protein structure with non-A,B chains """
     # ssbio/test/test_files/structures/1atp.sifts.xml
     return op.join(test_files_structures, '1atp.sifts.xml')
