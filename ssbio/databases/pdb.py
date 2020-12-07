@@ -312,11 +312,30 @@ def map_uniprot_resnum_to_pdb(uniprot_resnum, chain_id, sifts_file):
     # TODO: "Engineered_Mutation is also a possible annotation, need to figure out what to do with that
     my_pdb_annotation = False
 
-    # Find the right chain (entities in the xml doc)
+    # Find the right chain (entities in the xml doc).
+    # Note EntityID != ChainID. Entities are alphabetical e.g. Chains ('E','F','X') == Entities ('A','B','C')
+
+    # first find all chains in SIFTS file
     ent = './/{http://www.ebi.ac.uk/pdbe/docs/sifts/eFamily.xsd}entity'
-    for chain in root.findall(ent):
-        # TODO: IMPORTANT - entityId is not the chain ID!!! it is just in alphabetical order!
-        if chain.attrib['entityId'] == chain_id:
+    sifts_chain_ids = []
+    all_entities = root.findall(ent)
+    for i, chain in enumerate(all_entities):
+        # keep track of chain ids
+        uchains = './/{http://www.ebi.ac.uk/pdbe/docs/sifts/eFamily.xsd}crossRefDb[@dbSource="PDB"]'
+        my_chains = chain.findall(uchains)
+        if len(my_chains):
+            cid = my_chains[0].attrib['dbChainId']
+            if cid not in sifts_chain_ids:
+                sifts_chain_ids.append(cid)
+
+    # then assume alphabet mapping of chains -> entities
+    if chain_id not in sifts_chain_ids:
+        return None, False
+    sifts_entity_id = chr(ord('@') + (sifts_chain_ids.index(chain_id) + 1))
+
+    # find the right chain entity. and parse.
+    for chain in all_entities:
+        if chain.attrib['entityId'] == sifts_entity_id:
             # Find the "crossRefDb" tag that has the attributes dbSource="UniProt" and  dbResNum="your_resnum_here"
             # Then match it to the crossRefDb dbResNum that has the attribute dbSource="PDBresnum"
 
