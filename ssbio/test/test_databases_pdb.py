@@ -16,6 +16,7 @@ def test_download_mmcif_header(pdb_ids_working, pdb_ids_obsolete, pdb_ids_false,
         with pytest.raises(URLError):
             pdb.download_mmcif_header(pdb_id=fp, outdir=test_files_tempdir, force_rerun=True)
 
+
 def test_download_sifts_xml(pdb_ids_working, pdb_ids_obsolete, pdb_ids_false, test_files_tempdir):
     for wp in pdb_ids_working:
         pdb.download_sifts_xml(pdb_id=wp, outdir=test_files_tempdir)
@@ -28,8 +29,18 @@ def test_download_sifts_xml(pdb_ids_working, pdb_ids_obsolete, pdb_ids_false, te
         with pytest.raises(URLError):
             pdb.download_sifts_xml(pdb_id=fp, outdir=test_files_tempdir, force_rerun=True)
 
-def test_map_uniprot_resnum_to_pdb(pdb_ids_working, pdb_ids_obsolete, pdb_ids_false, test_files_tempdir):
-    pass
+
+def test_map_uniprot_resnum_to_pdb(sifts_xml):
+    mapping_cases = [
+        # Tuple(inputs, expected_outputs)
+        ({'uniprot_resnum': 20, 'chain_id': 'I', 'sifts_file': sifts_xml}, (19, True)),
+        ({'uniprot_resnum': 20, 'chain_id': 'A', 'sifts_file': sifts_xml}, (None, False)),  # invalid chain
+        ({'uniprot_resnum': 999, 'chain_id': 'I', 'sifts_file': sifts_xml}, (None, False)),  # invalid res
+    ]
+    for inputs, outputs in mapping_cases:
+        mapped_resnum, is_observed = pdb.map_uniprot_resnum_to_pdb(**inputs)
+        assert (mapped_resnum, is_observed) == outputs
+
 
 def test_best_structures(pdb_ids_working, pdb_ids_obsolete, pdb_ids_false, test_files_tempdir):
     pass
